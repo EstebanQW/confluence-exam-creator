@@ -1,0 +1,292 @@
+<form id="test" onsubmit="checkAnswers(); return false">
+    <table class="demotable">
+        <tr>
+            <td>Пример вопроса 1:</td>
+            <td>
+                <select class="answer" required>
+                    <option></option>
+                    <option value="1">Ответ 1</option>
+                    <option value="2">Ответ 2</option>
+                    <option value="3">Ответ 3</option>
+                    <option value="4">Ответ 4</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Duis aute irure dolor in reprehenderit in voluptate, unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat?</td>
+            <td>
+                <select class="answer" required>
+                    <option></option>
+                    <option value="1">Sed ut perspiciatis, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur!</option>
+                    <option value="2">Ответ 2</option>
+                    <option value="3">Ответ 3</option>
+                    <option value="4">Ответ 4</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <div id="timer"></div>
+    <button type="submit" id="submitBtn" class="flexo-button flexo-button--size-3 submit-button">Узнать результат</button>
+    <div id="result" style="display: none"></div>
+    <button type="button" id="sendResultBtn" onclick="sendResult()" class="flexo-button flexo-button--size-3 send-result-button">Отправить результат</button>
+</form>
+<button type="button" id="startBtn" onclick="startTimer()" class="start-test-button">Начать тестирование</button>
+
+<script>
+    const correctAnswers = ["2", "2"]; // Верные варианты ответа
+
+    let timerInterval; // Переменная для хранения интервала таймера
+
+    function checkAnswers() {
+        clearInterval(timerInterval);
+        const answers = Array.from(document.querySelectorAll(".answer")).map((select) => select.value);
+        const resultElement = document.getElementById("result");
+        let correctCount = 0;
+        let incorrectCount = 0;
+
+        answers.forEach((answer, index) => {
+            const selectElement = document.querySelectorAll(".answer")[index];
+            if (answer === correctAnswers[index]) {
+                selectElement.style.background = "rgb(155, 255, 155)";
+                correctCount++;
+            } else {
+                selectElement.style.background = "#faa";
+                incorrectCount++;
+            }
+            selectElement.disabled = true;
+        });
+
+        const totalQuestions = answers.length;
+        const correctPercentage = (correctCount / totalQuestions) * 100;
+        const incorrectPercentage = (incorrectCount / totalQuestions) * 100;
+
+        resultElement.textContent = `Верных ответов: ${correctCount} (${correctPercentage.toFixed(2)}%)\nНеверных ответов: ${incorrectCount} (${incorrectPercentage.toFixed(2)}%)`;
+        document.getElementById("submitBtn").style.display = "none";
+        document.getElementById("result").style.display = "block";
+        document.getElementById("sendResultBtn").style.display = "block"; // Показываем кнопку "Отправить результат"
+    }
+
+    function startTimer() {
+        const timerElement = document.getElementById("timer");
+        let seconds = 0,
+            minutes = 0,
+            hours = 0;
+
+        timerInterval = setInterval(() => {
+            seconds++;
+            if (seconds >= 60) {
+                seconds = 0;
+                minutes++;
+                if (minutes >= 60) {
+                    minutes = 0;
+                    hours++;
+                }
+            }
+            timerElement.textContent = `Прошло ${hours}:${minutes}:${seconds}`;
+        }, 1000);
+
+        document.getElementById("startBtn").style.display = "none";
+        document.getElementById("test").style.display = "block";
+    }
+
+    function sendResult() {
+        const loginElement = document.getElementById("user-menu-link");
+        const login = loginElement ? loginElement.dataset.username : "Неизвестный пользователь";
+
+        const examNameElement = document.querySelector("#title-text > a:nth-child(1)");
+        const examName = examNameElement ? examNameElement.textContent : "Неизвестный тест";
+
+        const answers = Array.from(document.querySelectorAll("select")).map((select) => select.selectedOptions[0].text);
+        const questions = Array.from(document.querySelectorAll("tr")).map((tr) => tr.children[0].textContent.trim());
+
+        const resultText = questions.map((question, index) => `${index + 1}. ${question}\nОТВЕТ: ${answers[index]}`).join("\n\n");
+        const resultElement = document.getElementById("result").textContent;
+        const currentTime = new Date().toLocaleTimeString();
+        const currentDate = new Date().toLocaleDateString();
+
+        const emailBody = `Тестируемый: ${login}\n${resultElement}\n${document.getElementById("timer").textContent}\nТекущее время: ${currentTime}\n\n${resultText}`;
+        const emailHref = `mailto:example1@mail.ru;example2@mail.ru?subject=${examName} ${currentDate}. Тестируемый: ${login}&body=${encodeURIComponent(emailBody)}`;
+        window.open(emailHref);
+    }
+</script>
+
+<style>
+    /* Общие стили для кнопок */
+    .flexo-button--size-3 {
+        height: 26px;
+        padding: 0 10px;
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 20px;
+        letter-spacing: 0.1px;
+    }
+
+    .flexo-button {
+        --color: #fff;
+        --border: #6055f0;
+        --bg-main: #6055f0;
+        --bg-hover: #796eff;
+        --disabled: #afb1ff;
+        --color-outline: #6055f0;
+        --border-outline: #afb1ff;
+        --bg-outline: #fff;
+        --bg-outline-hover: #f1f1ff;
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+        justify-content: center;
+        color: var(--color);
+        white-space: nowrap;
+        cursor: pointer;
+        background: var(--bg-main);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        outline: none;
+        transition: transform 0.3s;
+        box-sizing: border-box;
+    }
+
+    /* Стили для кнопки "Начать тестирование" */
+    .start-test-button {
+        display: block;
+        margin: 20% auto 0;
+        padding: 15px 30px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #fff;
+        background-color: #1a4463;
+        border: none;
+        border-radius: 43px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .start-test-button:hover {
+        background-color: #1082d4;
+        box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .start-test-button:active {
+        background-color: #074b7b;
+        transform: scale(0.98);
+    }
+
+    @keyframes glowing {
+        0% {
+            background-color: #054775;
+            box-shadow: 0 0 5px #074673;
+        }
+
+        50% {
+            background-color: #1082d4;
+            box-shadow: 0 0 20px #0e87de;
+        }
+
+        100% {
+            background-color: #074b7b;
+            box-shadow: 0 0 5px #094d7d;
+        }
+    }
+
+    .start-test-button {
+        animation: glowing 1500ms infinite;
+    }
+
+    /* Стили для кнопки "Узнать результат" */
+    .submit-button {
+        float: right;
+        margin-top: 8px;
+    }
+
+    /* Стили для кнопки "Отправить результат" */
+    .send-result-button {
+        float: right;
+        clear: right;
+        margin-top: 10px;
+        display: none;
+    }
+
+    /* Стили для таймера */
+    #timer {
+        font-weight: bold;
+        font-family: Arial, serif;
+        font-size: 19px;
+        text-align: center;
+        background: lightpink;
+        border-radius: 15px;
+        padding: 5px;
+        margin-top: 8px;
+        width: 195px;
+        margin-left: auto;
+        box-sizing: border-box;
+    }
+
+    /* Стили для таблицы */
+    table.demotable {
+        width: 100%;
+        border-collapse: collapse;
+        counter-reset: schetchik;
+    }
+
+    table.demotable tr {
+        counter-increment: schetchik;
+    }
+
+    table.demotable td,
+    table.demotable th,
+    table.demotable tr:before {
+        padding: 0.1em 0.5em;
+        border: 1px solid black;
+        font-size: 17px;
+        box-sizing: border-box;
+    }
+
+    table.demotable tr:before {
+        content: counter(schetchik);
+        display: table-cell;
+        vertical-align: middle;
+        color: #9b9b9b;
+        width: 1%;
+    }
+
+    /* Растягиваем выпадающие списки на всю ширину ячейки */
+    table.demotable select.answer {
+        width: 100%;
+        padding: 5px;
+        background-color: white;
+        border: none;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    /* Стили для блока результата */
+    #result {
+        font-weight: bold;
+        font-family: Arial, serif;
+        font-size: 19px;
+        background: #dbdbdb;
+        border-radius: 15px;
+        padding: 10px;
+        float: right;
+        width: 500px;
+        margin-left: 20px;
+        text-align: center;
+        white-space: pre-wrap;
+        box-sizing: border-box;
+    }
+
+    /* Скрытие формы теста по умолчанию */
+    #test {
+        display: none;
+        box-sizing: border-box;
+    }
+
+    /* Максимальная ширина второго столбца */
+    table.demotable td:nth-child(1) {
+        max-width: 1000px;
+    }
+</style>
